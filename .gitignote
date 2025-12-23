@@ -1,0 +1,38 @@
+# --- Cadence & Virtuoso ---
+*.cdslck
+*.dat
+*.log
+*.OA
+*#
+.nfs*
+pc.db
+libName.db
+cellName.db
+spectre.out
+
+# --- 仿真波形与结果 (Hspice, Spectre, VCS) ---
+*.tr[0-9]*
+*.sw[0-9]*
+*.ac[0-9]*
+*.st[0-9]*
+*.vcd
+*.fsdb
+*.evcd
+*.vpd
+*.db
+*.pvk
+*.err
+*.out
+*.val
+*.pa
+
+# --- 临时目录 ---
+/simulation/
+/be_work/
+/lvs_work/
+/rcx_work/
+/incremental_db/
+
+# --- 操作系统临时文件 ---
+.DS_Store
+Thumbs.db
