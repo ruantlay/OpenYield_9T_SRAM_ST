@@ -1,62 +1,89 @@
-# OpenYield 9T SRAM ST
+# OpenYield-9T-SRAM
 
-这是一个基于 9T 近阈值单边施密特触发器 (Schmitt-Trigger) 结构的高成品率 SRAM Macro 设计与全流程验证。
+## 项目简介
 
-## 📌 项目简介
-本项目提供了一个完整的 9T SRAM 位单元 (Bitcell) 设计方案。相比于传统的 6T SRAM，该 9T 结构通过增加晶体管来解耦读/写路径，从而在低电压工作环境下显著提升静态噪声容限 ($SNM$) 和成品率。
-## 📖 背景与设计目标
-在低电压环境下，传统 6T SRAM 面临严重的稳定性和成品率挑战。本项目实现的 9T 单元通过以下方式优化：
-- **解耦读写路径**：消除读干扰 (Read Disturb)。
-- **施密特触发器特性**：增强静态噪声容限 ($SNM$)。
-* **技术节点**: (例如: SkyWater 130nm / FreePDK 45nm)
-* **核心特性**: 高成品率、单端/差分读取、低功耗。
-* **分析工具**: Hspice / Spectre / Python (Data Analysis)
-
----
-## 📊 关键仿真结果 (PVT Analysis)
-项目完成了详尽的 PVT Corner 仿真，典型数据如下（32x16 Array, TT, 25°C, 1V）：
-
-| Corner | T_DEC (ns) | T_WL (ns) | T_READ (ns) | CLK_min (ns) |
-| :--- | :--- | :--- | :--- | :--- |
-| **TTG** | 0.0917 | 5.20 | 0.4457 | 0.86 |
-| **SSG** | 0.1020 | 5.22 | 0.4825 | 1.10 |
-| **FFG** | 0.0834 | 5.19 | 0.4159 | 0.80 |
-
-> 注：详细的温度/电压扫描数据（-40°C 至 125°C）见 `/docs/sim_report.md`。
-
-## 🛠 设计流程 (End-to-End Flow)
-1. **Front-End**: 使用 **PySpice** 进行参数化电路建模。
-2. **Analysis**: 执行 Monte Carlo 仿真验证 $V_{th}$ 偏移下的稳定性。
-3. **Characterization**: 自动化提取 `.lib` 文件的时序与功耗信息。
-4. **Back-End**: 基于 **KLayout/Python API** 进行版图自动生成，导出 GDSII 与 LEF。
-
-## 📂 目录结构说明
-为了方便开发者和研究者，仓库按以下结构组织：
-
-* 📂 **`docs/`** - 设计规格书、仿真波形图、成品率分析报告。
-* 📂 **`spice/`** - 核心电路网表。
-    * `cell/` : 9T SRAM 单元电路定义。
-    * `peri/` : 预充、译码器等外围电路。
-* 📂 **`layout/`** - GDSII 导出文件或版图快照。
-* 📂 **`sim/`** - 仿真环境。
-    * `monte_carlo/` : 针对 Vth 偏移的蒙特卡罗仿真脚本。
-    * `testbench/` : 读/写时序、功耗测试平台。
-* 📂 **`scripts/`** - 用于自动化仿真结果后处理的 Python/Tcl 脚本。
-
----
-
-## 🚀 快速开始
-1. **克隆仓库**:
-   ```bash
-   git clone [https://github.com/您的用户名/OpenYield_9T_SRAM_ST.git](https://github.com/您的用户名/OpenYield_9T_SRAM_ST.git)
-2. **文件名称**
-- **电路网表**: `/circuit/cell/sram_9t_st.sp`
-- **仿真脚本**: `python scripts/run_monte_carlo.py`
-- **行为模型**: `/backend/verilog/sram_macro.v`
-## 📈 设计亮点
-   成品率分析: 经过 $5\sigma$ 蒙特卡罗分析验证。稳定性: $SNM$ 在低电压 ($V_{dd}=0.6V$) 下表现优异。结构优化: 采用 (此处可填 写具体的 ST 结构，如施密特触发器或其他增强结构)。
-## ⚖️ 开源协议
-本项目采用 Apache 2.0 协议。
+本项目基于 OpenYield / PySpice 自动化电路设计流程，实现并验证一种 **9T SRAM 单元拓扑** 的完整晶体管级建模、阵列构建与电路级验证流程。  
+项目以 SRAM Macro 为目标对象，覆盖从 9T SRAM bitcell 建模、阵列级集成、外围电路适配，到 PVT 与 Monte Carlo 良率分析的完整前端设计过程。
 
 
 ---
+
+## 项目背景
+
+随着低功耗与近阈值计算需求的增长，传统 SRAM 结构在稳定性与可扩展性方面面临挑战。  
+9T SRAM 通过引入额外晶体管与独立读路径，在读稳定性、失配鲁棒性等方面具有潜在优势，适合用于对可靠性要求较高的存储与存算相关应用场景。
+
+本项目旨在基于自动化设计工具链，对 9T SRAM 拓扑进行系统建模与验证，探索其在工程化 SRAM 设计流程中的实现方式。
+
+---
+
+## 设计目标
+
+- 构建可参数化的 9T SRAM 单元晶体管级模型  
+- 在自动化流程中完成 9T SRAM 阵列的构建与集成  
+- 适配 9T SRAM 的读写外围电路与时序控制  
+- 完成静态、动态及统计意义下的电路级验证  
+- 形成具备工程复用价值的 SRAM 前端设计流程  
+
+---
+
+## 设计内容
+
+### 1. 9T SRAM 单元建模
+- 基于 PySpice 的晶体管级参数化描述
+- 明确 9T SRAM 的读写路径与控制信号
+- 支持晶体管尺寸与工艺模型配置
+
+### 2. SRAM 阵列构建
+- 支持行列规模可配置的 SRAM 阵列生成
+- 兼容标准地址译码与字线控制结构
+- 面向 SRAM Macro 的阵列级设计
+
+### 3. 外围电路设计
+- 写驱动与写位线控制
+- 读位线预充电与感测放大电路
+- 字线与读字线驱动电路
+- 时序控制与非重叠信号设计
+
+### 4. 仿真与验证
+- 基本功能仿真（读 / 写 / 保持）
+- 静态指标分析（SNM、写裕量）
+- 动态指标分析（读延时、能耗）
+- PVT 条件扫描
+- Monte Carlo 失配仿真与良率统计
+
+---
+
+## 工具与环境
+
+- Python 3.x
+- PySpice
+- Ngspice / HSPICE（可选）
+- OpenYield 自动化设计框架
+- 开源工艺 PDK（如 ASAP7、sky130）
+
+---
+
+## 仓库结构（示例）
+
+```text
+.
+├── cell/
+│   └── sram_9t_cell.py
+├── array/
+│   ├── sram_array.py
+│   └── sram_core_9t.py
+├── peripheral/
+│   ├── decoder.py
+│   ├── precharge.py
+│   ├── sense_amp.py
+│   ├── write_driver.py
+│   └── wl_driver.py
+├── testbench/
+│   ├── functional_tb.py
+│   ├── snm_tb.py
+│   ├── timing_tb.py
+│   └── monte_carlo_tb.py
+├── scripts/
+│   └── run_simulation.py
+└── README.md
