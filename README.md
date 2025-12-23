@@ -30,3 +30,21 @@
 1. **克隆仓库**:
    ```bash
    git clone [https://github.com/您的用户名/OpenYield_9T_SRAM_ST.git](https://github.com/您的用户名/OpenYield_9T_SRAM_ST.git)
+2. **运行仿真**
+: 进入 sim/testbench/ 目录，执行：
+   '''bash
+spice simulation_case.sp
+## 📈 设计亮点
+##⚖️ 开源协议
+本项目采用 Apache 2.0 协议。
+
+
+---
+
+### 操作建议：
+1.  **替换信息**：把模板里的 `(例如: SkyWater 130nm)` 换成你实际使用的工艺。
+2.  **添加图片**：如果你有电路图或蝴蝶曲线图，可以把图片放到 `docs/` 文件夹下，然后在 README 里引用它：
+    `![Bitcell Schematic](docs/schematic.png)`。
+3.  **提交更改**：点击底部的 **Commit changes**。
+
+**接下来，你是否需要我帮你写一份适用于此项目的 `.gitignore` 文件具体内容？**
