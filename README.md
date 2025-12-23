@@ -67,12 +67,12 @@
 ## 仓库结构（示例）
 
 ```text
-.
+sram-9t-macro/
 ├── cell/
-│   └── sram_9t_cell.py
+│   └── sram_9t_cell.py             # 9T bitcell 参数化建模
 ├── array/
-│   ├── sram_array.py
-│   └── sram_core_9t.py
+│   ├── sram_array.py                # 阵列生成逻辑
+│   └── sram_core_9t.py             # 9T SRAM 阵列核心
 ├── peripheral/
 │   ├── decoder.py
 │   ├── precharge.py
@@ -80,10 +80,13 @@
 │   ├── write_driver.py
 │   └── wl_driver.py
 ├── testbench/
-│   ├── functional_tb.py
-│   ├── snm_tb.py
-│   ├── timing_tb.py
-│   └── monte_carlo_tb.py
+│   ├── functional_tb.py             # 功能验证
+│   ├── timing_tb.py                 # 时序验证
+│   ├── snm_tb.py                    # 静态噪声裕度测试
+│   └── monte_carlo_tb.py            # 失配与良率仿真
 ├── scripts/
-│   └── run_simulation.py
+│   └── run_simulation.py            # 仿真运行脚本
+├── docs/
+│   └── diagram.png                  # 电路结构示意图
+├── .gitignore
 └── README.md
