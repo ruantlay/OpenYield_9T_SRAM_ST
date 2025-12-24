@@ -1,0 +1,62 @@
+# 子电路名称：基于单边施密特触发器的 9T SRAM (适配 PDK45)
+ST_9T_CELL_PDK45:
+  # 设计参数空间 / Design Parameter Space Configuration
+  parameters:
+    # 1. 晶体管沟道长度 (PDK45 最小 L 为 45nm，建议基准设为 45nm-50nm)
+    length:
+      type: "continuous scalar"
+      names: 'l'
+      upper: 1.5e-7        # 150nm
+      lower: 4.5e-8        # 45nm
+      value: 45.0e-9       # 默认使用最小沟道长度
+      description: "Channel length for all transistors / 统一沟道长度"
+
+    # 2. 左侧反相器宽度 (左侧包含：PUL1, PUL2, PDL1, PDL2)
+    # 注：PDK45 下，为了驱动能力，宽度通常建议在 120nm 以上
+    left_inv_width:
+      type: "continuous list"
+      names: ['pul1', 'pul2', 'pdl1', 'pdl2'] 
+      upper: [5.0e-7, 5.0e-7, 5.0e-7, 5.0e-7] # 上界 500nm
+      lower: [1.2e-7, 1.2e-7, 1.2e-7, 1.2e-7] # 下界 120nm (PDK45 典型最小宽度)
+      value: [1.35e-7, 1.35e-7, 1.8e-7, 1.8e-7] 
+      description: "Widths for 0:PUL1, 1:PUL2, 2:PDL1, 3:PDL2"
+
+    # 3. 右侧施密特触发器宽度 (包含：PUR, PDR1, PDR2, 以及反馈管 NF)
+    st_inv_width:
+      type: "continuous list"
+      names: ['pur', 'pdr1', 'pdr2', 'nf']
+      upper: [5.0e-7, 5.0e-7, 5.0e-7, 5.0e-7]
+      lower: [1.2e-7, 1.2e-7, 1.2e-7, 1.2e-7]
+      value: [1.35e-7, 1.8e-7, 1.8e-7, 1.2e-7]
+      description: "Widths for 0:PUR, 1:PDR1, 2:PDR2, 3:NF"
+
+    # 4. 传输管 PG 宽度 (单边结构，仅连接左侧 Q 点)
+    pg_width:
+      type: "continuous scalar"
+      names: 'pg'
+      upper: 5.0e-7
+      lower: 1.2e-7
+      value: 1.5e-7
+      description: "Access transistor (PG) width"
+
+    # 5. 写辅助电压配置 (论文关键：WWLB 在写1操作时的低电平)
+    # 在 PDK45 下，Vdd 约为 1.0V-1.1V，负压辅助通常在 -0.1V 到 -0.2V 效果较好
+    wwlb_negative_assist:
+      type: "continuous scalar"
+      names: 'v_wwlb_low'
+      upper: 0.0
+      lower: -0.25
+      value: -0.15
+      description: "Negative voltage assist level for WWLB"
+
+    # 6. 模型选择 (对应 PDK45 中的模型库名称)
+    # 通常 PDK45 提供 pmos 和 nmos 基础模型，如果使用的是特定多阈值库，请替换名称
+    pmos_model:
+      type: "categorical scalar"
+      choices: ["pmos", "pmos_vth", "pmos_vtl"] # 假设库中包含这些
+      value: "pmos"
+      
+    nmos_model:
+      type: "categorical scalar"
+      choices: ["nmos", "nmos_vth", "nmos_vtl"]
+      value: "nmos"
