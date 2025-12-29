@@ -12,13 +12,14 @@
 1.单边施密特触发器 (One-Sided ST) 结构：通过反馈晶体管提升读取状态下的节点翻转阈值，显著增强读取稳定性（Read Stability）。
 2.辅助写偏置策略 (Write Assist Scheme)：利用 WWLA 和 WWLB 信号动态调整施密特触发器的翻转阈值（Trip Voltage），解决近阈值下写入困难的问题。
 3.无回写位交织支持 (Bit-Interleaving without Write-back)：利用单端读取（Single-Ended Read）特性，在无需复杂回写电路的情况下，有效抑制半选单元（Half-Selected Cells）的干扰。
+
 ---
 
 ## 项目背景
 
 随着低功耗与近阈值计算需求的增长，传统 SRAM 结构在稳定性与可扩展性方面面临挑战。  
 9T SRAM 通过引入额外晶体管与独立读路径，在读稳定性、失配鲁棒性等方面具有潜在优势，适合用于对可靠性要求较高的存储与存算相关应用场景。
-
+在近阈值电压下，工艺偏差（Process Variation）导致的晶体管失配会使传统 6T SRAM 的静态噪声裕度（SNM）急剧下降。本项目采用的 9T 结构通过：1.读写路径分离：消除读取干扰。2.施密特触发反馈：利用滞回特性（Hysteresis）对抗噪声。3.面积与功耗平衡：相比 10T 结构具有更小的面积开销和更低的漏电功耗。
 本项目旨在基于自动化设计工具链，对 9T SRAM 拓扑进行系统建模与验证，探索其在工程化 SRAM 设计流程中的实现方式。
 
 ---
@@ -67,32 +68,25 @@
 - Ngspice / HSPICE（可选）
 - OpenYield 自动化设计框架
 - 开源工艺 PDK（如 ASAP7、sky130）
+---
+
+## 参考文献
+[1] K. Cho, J. Park, T. W. Oh and S. Jung, "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation," in IEEE Transactions on Circuits and Systems I: Regular Papers, vol. 67, no. 5, pp. 1551-1561, May 2020. doi: 10.1109/TCSI.2020.2965352.
 
 ---
 
 ## 仓库结构（示例）
 
 ```text
-sram-9t-macro/
-├── cell/
-│   └── sram_9t_cell.py             # 9T bitcell 参数化建模
-├── array/
-│   ├── sram_array.py                # 阵列生成逻辑
-│   └── sram_core_9t.py             # 9T SRAM 阵列核心
-├── peripheral/
-│   ├── decoder.py
-│   ├── precharge.py
-│   ├── sense_amp.py
-│   ├── write_driver.py
-│   └── wl_driver.py
-├── testbench/
-│   ├── functional_tb.py             # 功能验证
-│   ├── timing_tb.py                 # 时序验证
-│   ├── snm_tb.py                    # 静态噪声裕度测试
-│   └── monte_carlo_tb.py            # 失配与良率仿真
-├── scripts/
-│   └── run_simulation.py            # 仿真运行脚本
-├── docs/
-│   └── diagram.png                  # 电路结构示意图
-├── .gitignore
-└── README.md
+├── 📁 cell/               # 核心单元建模
+│   └── sram_9t_cell.py    # 参数化 9T Bitcell (PySpice 描述)
+├── 📁 array/              # 阵列与集成
+│   └── sram_core.py       # Bit-Interleaving 阵列构建逻辑
+├── 📁 peripheral/         # 适配外围电路
+│   ├── sense_amp.py       # 单端感测放大器 (Single-ended SA)
+│   └── assist_gen.py      # 辅助写脉冲产生器 
+├── 📁 testbench/          # 仿真与验证 (对标论文图表)
+│   ├── butterfly_tb.py    # 静态噪声裕度 (RSNM/HSNM)
+│   ├── write_margin_tb.py # 写入裕度分析
+│   └── mc_yield_tb.py     # 10k点蒙特卡洛良率统计
+└── 📁 docs/               # 技术文档与参考论文
