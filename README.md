@@ -2,10 +2,16 @@
 
 ## 项目简介
 
-本项目基于 OpenYield / PySpice 自动化电路设计流程，实现并验证一种 **9T SRAM 单元拓扑** 的完整晶体管级建模、阵列构建与电路级验证流程。  
+本项目基于 OpenYield / PySpice 自动化电路设计流程，参考 IEEE T-CAS I 2020 论文 "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation"，实现并验证了一种针对近阈值（Near-Threshold）环境优化的 9T SRAM 单元拓扑。  
 项目以 SRAM Macro 为目标对象，覆盖从 9T SRAM bitcell 建模、阵列级集成、外围电路适配，到 PVT 与 Monte Carlo 良率分析的完整前端设计过程。
 
+## 核心技术特性
 
+
+本项目复现了论文中解决近阈值 SRAM 不稳定问题的三大核心设计：
+1.单边施密特触发器 (One-Sided ST) 结构：通过反馈晶体管提升读取状态下的节点翻转阈值，显著增强读取稳定性（Read Stability）。
+2.辅助写偏置策略 (Write Assist Scheme)：利用 WWLA 和 WWLB 信号动态调整施密特触发器的翻转阈值（Trip Voltage），解决近阈值下写入困难的问题。
+3.无回写位交织支持 (Bit-Interleaving without Write-back)：利用单端读取（Single-Ended Read）特性，在无需复杂回写电路的情况下，有效抑制半选单元（Half-Selected Cells）的干扰。
 ---
 
 ## 项目背景
