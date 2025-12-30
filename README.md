@@ -78,14 +78,19 @@
 ## 仓库结构
 
 ```text
-├── 📁 cell/               # 核心单元建模
-│   └── sram_9t_cell.py    # 参数化 9T Bitcell (PySpice 描述)
-├── 📁 array/              # 阵列与集成
-│   └── sram_core.py       # Bit-Interleaving 阵列构建逻辑
-├── 📁 peripheral/         # 适配外围电路
-│   ├── sense_amp.py       # 单端感测放大器 (Single-ended SA)
-│   └── assist_gen.py      # 辅助写脉冲产生器 
-├── 📁 testbench/          # 仿真与验证 (对标论文图表)
-│   ├── SRAM_9T_CORE_8x4 .sp    # SRAM_9T_CORE_8x4 蒙特卡洛仿真测试平台
+OpenYield-9T-SRAM/
+├── 📁 cell/
+│   ├── sram_9t_cell.py      # 电路核心建模
+│   └── tmp_mc.spice         # 工艺模型与偏差定义
+├── 📁 testbench/            # 仿真验证脚本
+│   ├── RSNM.sp              # 静态噪声容限仿真源文件
+│   └── DC_disturbance_curve.sp  # DC 扰动仿真源文件
+├── 📁 scripts/              # 自动化分析工具
+│   ├── plot_rsnm.py         # 提取结果并计算 RSNM
+│   └── plot_DC_disturbance_curve.py  # 绘制扰动轨迹图
+├── 📁 results/              # 仿真输出与可视化（用于 README 展示）
+│   ├── 📁 raw/              # 存放 .prn 原始数据
+│   └── 📁 figures/          # 存放生成的 png 图片
 └── 📁 docs/               # 技术文档与参考论文
-    ├──One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation #参考论文
+│   ├──One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation #参考论文
+└── README.md
