@@ -1,6 +1,6 @@
 # OpenYield-9T-SRAM
 
-## 1.项目简介
+## 1. 项目简介
 
 本项目基于 OpenYield / PySpice 自动化电路设计流程，参考 IEEE T-CAS I 2020 论文 *"One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation"*，实现并验证了一种针对 **近阈值 (Near-Threshold)** 环境优化的 9T SRAM 存储宏单元（Macro）。
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 2.核心技术特性
+## 2. 核心技术特性
 
 ### 2.1 存储宏单元 (SRAM Macro) 集成
 项目实现了完整的存储宏系统，利用单端读取特性优化了近阈值操作：
@@ -24,7 +24,7 @@
 - **无回写位交织支持**：利用单端读取特性，在无需复杂回写电路的情况下，有效抑制半选单元（Half-Selected Cells）干扰。
 
 ---
-## 3.仓库结构
+## 3. 仓库结构
 
 ```text
 OpenYield-9T-SRAM/
@@ -46,31 +46,49 @@ OpenYield-9T-SRAM/
 ```
 ---
 
-## 4. 自动化设计流程 (Automated Design Flow)
+## 4. 核心验证流程：基于 Xyce 的电路分析
+本项目目前专注于 9T ST-SRAM Bitcell 的物理特性验证。通过 Xyce 仿真器，我们对近阈值（Near-Threshold）电压下的稳定性、功能性及可靠性进行了深度评估。
+### 4.1 静态噪声裕度分析 (RSNM Analysis)
+为了验证单边施密特触发器（One-Sided ST）对读取稳定性的提升，我们设计了 `RSNM.sp` 和 `DC_disturbance_curve.sp` 仿真脚本。
 
-本项目基于 **OpenYield** 框架实现了 **One-command Flow**，将复杂的电路参数调整、网表拼接与统计仿真通过 Python 脚本进行自动化管理。
+- **仿真方法**：采用双电压源扫描（V-Sweep）方法。在 Xyce 中通过 `.DC` 扫描模拟读取干扰状态，测量存储节点 Q 和 QB 的电压传输曲线（VTC）。
+- **技术要点**：
+    - **非对称建模**：针对 9T 结构的特殊性，对比了传统 6T 与 9T 的最大内切正方形。
+    - **收敛性优化**：通过设置合理的初始条件（`.ic`），确保了在 $V_{DD}=0.5V$ 极低电压下的仿真收敛。
+- **结论**：仿真结果显示，9T 结构通过施密特触发器的滞回特性，显著提高了翻转阈值（Trip Voltage）。
+### 4.2 瞬态功能验证 (Transient Function Test)
+![论文波形](images/论文波形.png)![仿真验证波形](images/仿真验证波形.png)
+通过 `single_cell.sp` 脚本验证 9T 单元在完整周期内的动态响应，严格复现论文中的操作逻辑。
 
-### 4.1 编译与仿真一键化
-未完成：通过 `main_sram.py` 驱动 OpenYield 核心，自动解析 YAML 配置并调用 **Xyce** 仿真器：
+- **全路径监控**：实时追踪 `WL` (字线)、`BL` (位线)、`WWLA/B` (辅助信号) 以及 `Q/QB` (存储点) 的电位。
+- **辅助逻辑验证**：
+    - **Write-0 Assist**: 验证 `WWLA` 升高时对左侧上拉路径（PUL）的削弱效果，显著降低写 0 时延。
+    - **Write-1 Assist (Negative Assist)**: 验证 `WWLB` 产生负压脉冲（如 -0.1V）时，对右侧下拉反馈的抑制作用，确保在极低电压下数据仍能顺利翻转。
+- **性能测量**：通过 Xyce 的 `.MEASURE` 语句自动提取延迟时间（Write Latency）与功耗数据。
+### 4.3 工艺偏差分析 (Monte Carlo Simulation)
+为了预测未来宏单元（Macro）的良率，我们利用 Xyce 的统计仿真功能模拟了制造偏差。
 
+- **采样分析**：通过 `single_cell_mc.sp` 执行 **1000 次采样** 的蒙特卡洛迭代（设置 `.SAMPLING useExpr=true`）。
+- **关键意义**：评估了随机失配对 RSNM 和写延迟的影响分布，这为后续从单单元扩展到 **8x4 Macro 阵列设计** 奠定了坚实的统计基础。
+
+---
+## 5. 仿真复现指南
+
+### 5.1 环境初始化
+进入 Ubuntu 镜像或 Linux 环境后（镜像见7.1），加载 Xyce 与 Python 环境：
 ```bash
-# [功能验证] 执行全系统逻辑功能仿真
-python OpenYield/main_sram.py --testbench sram_9t_core_testbench
-
-# [良率分析] 执行 1000 次采样级别的蒙特卡洛 (Monte Carlo) 统计分析
-python OpenYield/main_sram.py --testbench sram_9t_core_MC_testbench (更改中)
+source refreshenv
+# 进入测试目录
+cd Xyce/Bitcell/testbench
+# 运行 RSNM 静态扫描
+xyce RSNM.sp
+python ../scripts/plot_rsnm.py
+# 运行 Single Cell 动态功能测试
+xyce single_cell.sp
+python ../scripts/plot_single_cell.py
 ```
-### 4.2 环境与扩展预留
-linux虚拟机镜像见7.1
-未完成：将 8x4 阵列扩展至 32x32 或更大规模，编译器自动处理字线（WL）与位线（BL）的映射。
-
 ---
-## 5. 仿真验证结果
-### 5.1 静态噪声裕度 (RSNM)
-利用 One-sided Schmitt-Trigger 结构，9T 单元在 $V_{DD}=0.5V$ 的近阈值条件下展现出显著的滞回特性。通过 DC 扫描得到的蝶形曲线显示，其读取噪声裕度相比传统 6T SRAM 提升了约 XX%。
-
----
-## 设计内容与实现
+## 6. 设计内容与实现
 
 ### 1. 9T SRAM 单元建模
 * **左侧支路**：包含上拉堆叠（PUL1/2）和下拉堆叠（PDL1/2），受 `WWLA/B` 调控。
@@ -91,29 +109,9 @@ linux虚拟机镜像见7.1
 
 
 ---
-
-## 仿真验证与结果
-
-本项目通过 `SRAM_9T_CORE_8x4_MC_TB` 测试平台进行全路径验证。
-
-### 1. 静态指标 (RSNM)
-利用施密特触发器结构，9T 单元在 $V_{DD}=0.5V$ 下表现出显著的滞回特性，RSNM 相比传统 6T 提升约 **XXX%**。
-
-### 2. 瞬态功能验证
-验证了从地址输入到感测放大器输出的全流程。
-* **读操作**：单端位线放电至 `VREF` 以下，SA 成功触发。
-* **写操作**：在写辅助信号作用下，成功完成近阈值下的数据翻转。
-
-### 3. 蒙特卡洛统计分析 (工艺偏差)
-通过对阵列进行蒙特卡洛仿真（Mismatch 建模），提取以下测量指标：
-| 性能指标 | 说明 | 典型值 (VDD=0.6V) |
-| :--- | :--- | :--- |
-| **TDECODER** | 译码器 + 路径延迟 | XX ns |
-| **TWRITE1** | 最差情况写 1 延迟 | XX ns |
-| **TSA_READ** | 读感测延迟 | XX ns |
-| **PAVG** | 阵列平均功耗 | XX uW |
-| **PLEAK** | 静态漏电功耗 | XX nW |
-
+## 6. Macro与自动化工具
+### 已完成Macro的Xyce基本框架搭建
+### 未完成自动化flow
 ---
 
 ## 7. 运行环境配置 (Environment Setup)
@@ -127,15 +125,12 @@ linux虚拟机镜像见7.1
 - **镜像版本**: Ubuntu 22.04 LTS (Pre-installed with Xyce 7.8 & Conda)
 
 ### 7.2 镜像导入说明
-1.  下载解压后，使用 **VMware Workstation** 或 **VirtualBox** 打开 `.ovf` 或 `.vmx` 文件。
+1.  下载解压后，使用 **VMware Workstation**  打开。
 2.  **默认凭据**:
-    - 用户名: `openyield`
-    - 密码: `123456`
+    - 用户名: `zhz`
+    - 密码: `zhzwcy999`
 
 ---
-
-
----
-##参考文献
+## 参考文献
 
 [1] K. Cho, et al., "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation," in IEEE T-CAS I, vol. 67, no. 5, 2020.
