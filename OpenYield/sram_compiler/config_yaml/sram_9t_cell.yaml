@@ -1,0 +1,40 @@
+SRAM_9T_CELL:
+  parameters:
+    # --- PMOS 宽度列表 ---
+    pmos_width:
+      type: "continuous list"
+      names: ["pul1", "pul2", "pur"]
+      upper: [5.0e-7, 5.0e-7, 5.0e-7]
+      lower: [4.5e-8, 4.5e-8, 4.5e-8]
+      value: [1.35e-7, 1.35e-7, 1.35e-7]
+      description: "0:PUL1, 1:PUL2, 2:PUR 宽度"
+
+    # --- NMOS 宽度列表 ---
+    nmos_width:
+      type: "continuous list"
+      # 索引 1 必须对应 PG，以适配 main_sram.py 的访问
+      names: ["pdl1", "pg", "pdl2", "pdr1", "pdr2", "nf"]
+      upper: [5.0e-7, 5.0e-7, 5.0e-7, 5.0e-7, 5.0e-7, 5.0e-7]
+      lower: [4.5e-8, 4.5e-8, 4.5e-8, 4.5e-8, 4.5e-8, 4.5e-8]
+      value: [1.8e-7, 1.5e-7, 1.8e-7, 1.8e-7, 1.8e-7, 1.2e-7]
+      description: "0:PDL1, 1:PG, 2:PDL2, 3:PDR1, 4:PDR2, 5:NF 宽度"
+
+    # --- 沟道长度 ---
+    length:
+      type: "continuous scalar"
+      names: 'l'
+      value: 4.5e-8
+      description: "统一沟道长度"
+
+    # --- 模型配置 ---
+    pmos_model:
+      type: "categorical list"
+      names: ["pul1", "pul2", "pur"]
+      value: ["pmos", "pmos", "pmos"]
+      description: "PMOS 器件模型"
+
+    nmos_model:
+      type: "categorical list"
+      names: ["pdl1", "pg", "pdl2", "pdr1", "pdr2", "nf"]
+      value: ["nmos", "nmos", "nmos", "nmos", "nmos", "nmos"]
+      description: "NMOS 器件模型"

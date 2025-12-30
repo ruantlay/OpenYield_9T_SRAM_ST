@@ -10,6 +10,7 @@
 
 ## 2. 核心技术特性
 
+![论文电路图](docs/论文电路图.png)
 ### 2.1 存储宏单元 (SRAM Macro) 集成
 项目实现了完整的存储宏系统，利用单端读取特性优化了近阈值操作：
 - **Row Decoder**: 3-to-8 译码器，负责行地址选通。
@@ -57,7 +58,7 @@ OpenYield-9T-SRAM/
     - **收敛性优化**：通过设置合理的初始条件（`.ic`），确保了在 $V_{DD}=0.5V$ 极低电压下的仿真收敛。
 - **结论**：仿真结果显示，9T 结构通过施密特触发器的滞回特性，显著提高了翻转阈值（Trip Voltage）。
 ### 4.2 瞬态功能验证 (Transient Function Test)
-![论文波形](images/论文波形.png)![仿真验证波形](images/仿真验证波形.png)
+![论文波形](docs/论文波形.png)![仿真波形](docs/仿真波形.png)
 通过 `single_cell.sp` 脚本验证 9T 单元在完整周期内的动态响应，严格复现论文中的操作逻辑。
 
 - **全路径监控**：实时追踪 `WL` (字线)、`BL` (位线)、`WWLA/B` (辅助信号) 以及 `Q/QB` (存储点) 的电位。
@@ -67,7 +68,7 @@ OpenYield-9T-SRAM/
 - **性能测量**：通过 Xyce 的 `.MEASURE` 语句自动提取延迟时间（Write Latency）与功耗数据。
 ### 4.3 工艺偏差分析 (Monte Carlo Simulation)
 为了预测未来宏单元（Macro）的良率，我们利用 Xyce 的统计仿真功能模拟了制造偏差。
-
+![蒙特卡洛统计](docs/蒙特卡洛统计.png)
 - **采样分析**：通过 `single_cell_mc.sp` 执行 **1000 次采样** 的蒙特卡洛迭代（设置 `.SAMPLING useExpr=true`）。
 - **关键意义**：评估了随机失配对 RSNM 和写延迟的影响分布，这为后续从单单元扩展到 **8x4 Macro 阵列设计** 奠定了坚实的统计基础。
 
@@ -108,10 +109,6 @@ python ../scripts/plot_single_cell.py
 
 
 
----
-## 6. Macro与自动化工具
-### 已完成Macro的Xyce基本框架搭建
-### 未完成自动化flow
 ---
 
 ## 7. 运行环境配置 (Environment Setup)
