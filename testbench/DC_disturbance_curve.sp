@@ -3,7 +3,8 @@
 * Xyce / HSPICE compatible
 * =========================================
 
-.include "/home/zhz/anaconda3/OpenYield_9T_SRAM_ST/sim/9T_sim/tmp_mc.spice"
+* 使用相对路径引用模型文件
+.include "../cell/tmp_mc.spice"
 
 .temp 25
 
