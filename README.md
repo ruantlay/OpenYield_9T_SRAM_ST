@@ -69,6 +69,12 @@
 - OpenYield 自动化设计框架
 - 开源工艺 PDK（如 ASAP7、sky130）
 ---
+## 如何运行仿真
+1. 进入 `testbench` 目录
+2. 执行命令：`xyce RSNM.sp`
+3. 运行分析脚本：`python ../scripts/plot_rsnm.py`
+
+---
 
 ## 参考文献
 [1] K. Cho, J. Park, T. W. Oh and S. Jung, "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation," in IEEE Transactions on Circuits and Systems I: Regular Papers, vol. 67, no. 5, pp. 1551-1561, May 2020. doi: 10.1109/TCSI.2020.2965352.
