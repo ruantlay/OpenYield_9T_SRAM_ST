@@ -1,118 +1,141 @@
 # OpenYield-9T-SRAM
 
-## 项目简介
+## 1.项目简介
 
-本项目基于 OpenYield / PySpice 自动化电路设计流程，参考 IEEE T-CAS I 2020 论文 "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation"，实现并验证了一种针对近阈值（Near-Threshold）环境优化的 9T SRAM 单元拓扑。  
-项目以 SRAM Macro 为目标对象，覆盖从 9T SRAM bitcell 建模、阵列级集成、外围电路适配，到 PVT 与 Monte Carlo 良率分析的完整前端设计过程。
+本项目基于 OpenYield / PySpice 自动化电路设计流程，参考 IEEE T-CAS I 2020 论文 *"One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation"*，实现并验证了一种针对 **近阈值 (Near-Threshold)** 环境优化的 9T SRAM 存储宏单元（Macro）。
 
-## 核心技术特性
-
-
-本项目复现了论文中解决近阈值 SRAM 不稳定问题的三大核心设计：
-1.单边施密特触发器 (One-Sided ST) 结构：通过反馈晶体管提升读取状态下的节点翻转阈值，显著增强读取稳定性（Read Stability）。
-2.辅助写偏置策略 (Write Assist Scheme)：利用 WWLA 和 WWLB 信号动态调整施密特触发器的翻转阈值（Trip Voltage），解决近阈值下写入困难的问题。
-3.无回写位交织支持 (Bit-Interleaving without Write-back)：利用单端读取（Single-Ended Read）特性，在无需复杂回写电路的情况下，有效抑制半选单元（Half-Selected Cells）的干扰。
+项目不仅完成了 9T Bitcell 的建模，还构建了完整的 **8x4 SRAM 阵列及全外围电路**（包含行译码器、字线驱动器、列选择器及感测放大器），并针对工艺偏差进行了蒙特卡洛（Monte Carlo）良率分析。
 
 ---
 
-## 项目背景
+## 2.核心技术特性
 
-随着低功耗与近阈值计算需求的增长，传统 SRAM 结构在稳定性与可扩展性方面面临挑战。  
-9T SRAM 通过引入额外晶体管与独立读路径，在读稳定性、失配鲁棒性等方面具有潜在优势，适合用于对可靠性要求较高的存储与存算相关应用场景。
-在近阈值电压下，工艺偏差（Process Variation）导致的晶体管失配会使传统 6T SRAM 的静态噪声裕度（SNM）急剧下降。本项目采用的 9T 结构通过：1.读写路径分离：消除读取干扰。2.施密特触发反馈：利用滞回特性（Hysteresis）对抗噪声。3.面积与功耗平衡：相比 10T 结构具有更小的面积开销和更低的漏电功耗。
-本项目旨在基于自动化设计工具链，对 9T SRAM 拓扑进行系统建模与验证，探索其在工程化 SRAM 设计流程中的实现方式。
-
----
-
-## 设计目标
-
-- 构建可参数化的 9T SRAM 单元晶体管级模型  
-- 在自动化流程中完成 9T SRAM 阵列的构建与集成  
-- 适配 9T SRAM 的读写外围电路与时序控制  
-- 完成静态、动态及统计意义下的电路级验证  
-- 形成具备工程复用价值的 SRAM 前端设计流程  
+### 2.1 存储宏单元 (SRAM Macro) 集成
+项目实现了完整的存储宏系统，利用单端读取特性优化了近阈值操作：
+- **Row Decoder**: 3-to-8 译码器，负责行地址选通。
+- **Wordline Driver**: 支持同步产生 `WWLA`（写0辅助）与 `WWLB`（写1辅助）偏置信号。
+- **Sense Amplifier (SA)**: 电压锁存型单端感测放大器，适配单端位线放电。
+- **Column MUX**: 2选1列选择逻辑，支持位交织（Bit-Interleaving）架构。
+### 2.2 9T ST-SRAM 核心技术
+本项目复现了论文中解决近阈值 SRAM 不稳定问题的核心设计：
+- **单边施密特触发器 (One-Sided ST) 结构**：通过反馈晶体管提升读取状态下的节点翻转阈值，显著增强读取稳定性（Read Stability）。
+- **动态写偏置策略 (Write Assist Scheme)**：利用字线驱动同步产生的 `WWLA`（升压）和 `WWLB`（负偏置）信号，动态调整施密特触发器的翻转阈值（Trip Voltage），攻克近阈值下写入困难的瓶颈。
+- **系统级集成与单端感测**：针对 9T 的单端位线（Single-Ended BL）特性，设计了带外部参考电平（VREF）的电压锁存型感测放大器。
+- **无回写位交织支持**：利用单端读取特性，在无需复杂回写电路的情况下，有效抑制半选单元（Half-Selected Cells）干扰。
 
 ---
-
-## 设计内容
-
-### 1. 9T SRAM 单元建模
-- 基于 PySpice 的晶体管级参数化描述
-- 明确 9T SRAM 的读写路径与控制信号
-- 支持晶体管尺寸与工艺模型配置
-
-### 2. SRAM 阵列构建
-- 支持行列规模可配置的 SRAM 阵列生成
-- 兼容标准地址译码与字线控制结构
-- 面向 SRAM Macro 的阵列级设计
-
-### 3. 外围电路设计
-- 写驱动与写位线控制
-- 读位线预充电与感测放大电路
-- 字线与读字线驱动电路
-- 时序控制与非重叠信号设计
-
-### 4. 仿真与验证
-- 基本功能仿真（读 / 写 / 保持）
-- 静态指标分析（SNM、写裕量）
-- 动态指标分析（读延时、能耗）
-- PVT 条件扫描
-- Monte Carlo 失配仿真与良率统计
-
----
-
-## 工具与环境
-
-- Python 3.x
-- PySpice
-- Ngspice / HSPICE（可选）
-- OpenYield 自动化设计框架
-- 开源工艺 PDK（如 ASAP7、sky130）
----
-## 如何运行仿真
-1. 进入 `testbench` 目录
-2. 执行命令：`xyce RSNM.sp`
-3. 运行分析脚本：`python ../scripts/plot_rsnm.py`
----
-
-### 仿真验证结果
-
-#### 1. 静态噪声容限 (RSNM) 分析
-利用施密特触发器结构，9T 单元在读取状态下表现出显著的滞回特性，增大了噪声容限。
-![RSNM Butterfly Curve](results/figures/rsnm_butterfly_fixed.png)
-*仿真结论：在 VDD=0.5V 时，检测到 RSNM 约为 XXX mV。*
-#### 2. 读取干扰 DC 轨迹
-通过注入噪声源分析存储节点的翻转临界点，验证了单边 ST 结构对读取干扰的抑制作用。
-![DC Trajectory](results/figures/Read%20disturbance%20DC%20trajectory%20under%20noise%20injection.png)
-#### 3. 蒙特卡洛良率统计 (Yield Analysis)
-
-#### 4. 写辅助技术验证 (Write-Assist Verification)
-## 架构性能对比
-## 阵列级集成说明
-   ### 1. 位交织结构实现
-   ### 2. 时序协同设计
----
-## 参考文献
-[1] K. Cho, J. Park, T. W. Oh and S. Jung, "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation," in IEEE Transactions on Circuits and Systems I: Regular Papers, vol. 67, no. 5, pp. 1551-1561, May 2020. doi: 10.1109/TCSI.2020.2965352.
-
----
-
-## 仓库结构
+## 3.仓库结构
 
 ```text
 OpenYield-9T-SRAM/
-├── 📁 cell/
-│   ├── sram_9t_cell.py      # 电路核心建模
-│   └── tmp_mc.spice         # 工艺模型与偏差定义
-├── 📁 testbench/            # 仿真验证脚本
-│   ├── RSNM.sp              # 静态噪声容限仿真源文件
-│   └── DC_disturbance_curve.sp  # DC 扰动仿真源文件
-├── 📁 scripts/              # 自动化分析工具
-│   ├── plot_rsnm.py         # 提取结果并计算 RSNM
-│   └── plot_DC_disturbance_curve.py  # 绘制扰动轨迹图
-├── 📁 results/              # 仿真输出与可视化（用于 README 展示）
-│   ├── 📁 raw/              # 存放 .prn 原始数据
-│   └── 📁 figures/          # 存放生成的 png 图片
-└── 📁 docs/               # 技术文档与参考论文
-│   ├──One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation #参考论文
+.
+├── 📂 OpenYield/               # 自动化设计与编译器核心
+│   ├── 📂 sram_compiler/       # SRAM 编译器
+│   │   ├── 📂 config_yaml/     # 各模块参数配置文件 (YAML)
+│   │   ├── 📂 subcircuits/     # 参数化电路类实现 (Python)
+│   │   └── 📂 testbenches/     # 自动化仿真脚本 (MC/Function)
+│   └── main_sram.py            # 编译器主入口脚本
+│
+└── 📂 Xyce/                    # 核心电路分析与验证 (物理层)
+|   ├── 📂 Bitcell/             # 单元级分析 (RSNM, DC Disturbance)
+|   └── 📂 Macro/               # 宏模块级分析 (8x4 Array, Peripheral)
+|       ├── 📂 results/         # 仿真波形图与原始数据 (.prn, .mt0)
+|       └── 📂 scripts/         # 针对 Xyce 输出结果的专用绘图工具
+└── 📂 docs/                    # 参考文献与技术文档
 └── README.md
+```
+---
+
+## 4. 自动化设计流程 (Automated Design Flow)
+
+本项目基于 **OpenYield** 框架实现了 **One-command Flow**，将复杂的电路参数调整、网表拼接与统计仿真通过 Python 脚本进行自动化管理。
+
+### 4.1 编译与仿真一键化
+未完成：通过 `main_sram.py` 驱动 OpenYield 核心，自动解析 YAML 配置并调用 **Xyce** 仿真器：
+
+```bash
+# [功能验证] 执行全系统逻辑功能仿真
+python OpenYield/main_sram.py --testbench sram_9t_core_testbench
+
+# [良率分析] 执行 1000 次采样级别的蒙特卡洛 (Monte Carlo) 统计分析
+python OpenYield/main_sram.py --testbench sram_9t_core_MC_testbench (更改中)
+```
+### 4.2 环境与扩展预留
+linux虚拟机镜像见7.1
+未完成：将 8x4 阵列扩展至 32x32 或更大规模，编译器自动处理字线（WL）与位线（BL）的映射。
+
+---
+## 5. 仿真验证结果
+### 5.1 静态噪声裕度 (RSNM)
+利用 One-sided Schmitt-Trigger 结构，9T 单元在 $V_{DD}=0.5V$ 的近阈值条件下展现出显著的滞回特性。通过 DC 扫描得到的蝶形曲线显示，其读取噪声裕度相比传统 6T SRAM 提升了约 XX%。
+
+---
+## 设计内容与实现
+
+### 1. 9T SRAM 单元建模
+* **左侧支路**：包含上拉堆叠（PUL1/2）和下拉堆叠（PDL1/2），受 `WWLA/B` 调控。
+* **右侧支路**：标准上拉（PUR）与带反馈管（NF）的施密特触发下拉结构。
+* **寄生建模**：在 Bitcell 内部显式引入了 RC 寄生网络（100Ω/0.001pF），以模拟真实互连线延迟。
+
+### 2. 写辅助逻辑 (Write Assist)
+* **写 '0'**：`WWLA` 升高，削弱左侧上拉能力。
+* **写 '1'**：`WWLB` 降低（负偏置），削弱右侧下拉反馈，使节点 Q 易于拉高。
+
+### 3. 系统级时序控制
+项目设计了复杂的非重叠时序：
+1.  **PRECHARGE**：预充位线至 VDD。
+2.  **DECODE**：行地址译码，锁定 WL。
+3.  **ACCESS/ASSIST**：WL 选通同时，WWLA/B 施加辅助偏置。
+4.  **SENSE**：SAE 使能，感测放大器放大位线压差。
+
+
+
+---
+
+## 仿真验证与结果
+
+本项目通过 `SRAM_9T_CORE_8x4_MC_TB` 测试平台进行全路径验证。
+
+### 1. 静态指标 (RSNM)
+利用施密特触发器结构，9T 单元在 $V_{DD}=0.5V$ 下表现出显著的滞回特性，RSNM 相比传统 6T 提升约 **XXX%**。
+
+### 2. 瞬态功能验证
+验证了从地址输入到感测放大器输出的全流程。
+* **读操作**：单端位线放电至 `VREF` 以下，SA 成功触发。
+* **写操作**：在写辅助信号作用下，成功完成近阈值下的数据翻转。
+
+### 3. 蒙特卡洛统计分析 (工艺偏差)
+通过对阵列进行蒙特卡洛仿真（Mismatch 建模），提取以下测量指标：
+| 性能指标 | 说明 | 典型值 (VDD=0.6V) |
+| :--- | :--- | :--- |
+| **TDECODER** | 译码器 + 路径延迟 | XX ns |
+| **TWRITE1** | 最差情况写 1 延迟 | XX ns |
+| **TSA_READ** | 读感测延迟 | XX ns |
+| **PAVG** | 阵列平均功耗 | XX uW |
+| **PLEAK** | 静态漏电功耗 | XX nW |
+
+---
+
+## 7. 运行环境配置 (Environment Setup)
+
+本项目依赖 Xyce 仿真器及特定的 Python 科学计算环境。为了方便用户快速复现，我们提供了预装好所有工具链的 **Ubuntu 虚拟机镜像**。
+
+### 7.1 获取镜像 (Ubuntu Image)
+请从以下网盘链接下载预配置好的环境：
+- **链接**: [此处填写你的网盘分享链接]
+- **提取码**: [此处填写提取码]
+- **镜像版本**: Ubuntu 22.04 LTS (Pre-installed with Xyce 7.8 & Conda)
+
+### 7.2 镜像导入说明
+1.  下载解压后，使用 **VMware Workstation** 或 **VirtualBox** 打开 `.ovf` 或 `.vmx` 文件。
+2.  **默认凭据**:
+    - 用户名: `openyield`
+    - 密码: `123456`
+
+---
+
+
+---
+##参考文献
+
+[1] K. Cho, et al., "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation," in IEEE T-CAS I, vol. 67, no. 5, 2020.
