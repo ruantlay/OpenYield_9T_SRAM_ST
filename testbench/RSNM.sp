@@ -1,5 +1,5 @@
 * 9T SRAM RSNM - Xyce Compatibility Fix
-.INCLUDE "tmp_mc.spice"
+.include "../cell/tmp_mc.spice"
 
 * --- 电源定义 ---
 VVDD VDD 0 0.5
