@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+import os
 
 def calculate_rsnm(vin, vq, vqb):
     """ 计算 RSNM：寻找两条 VTC 曲线之间最大的内切正方形边长 """
@@ -19,6 +20,10 @@ def calculate_rsnm(vin, vq, vqb):
     # RSNM 约等于 max(|V1-V2|) / sqrt(2)
     rsnm_val = np.max(diff) / np.sqrt(2)
     return rsnm_val
+
+# 获取脚本所在目录，确保路径在任何位置运行都有效
+base_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(base_dir, "../results/raw/RSNM.sp.prn")
 
 def plot_rsnm_from_prn(file_path):
     # --- 核心修复：跳过 Xyce 的头部注释 ---
