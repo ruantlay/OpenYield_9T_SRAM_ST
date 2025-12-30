@@ -77,8 +77,6 @@
 
 ### 仿真验证结果
 
-本项目通过对 9T SRAM 进行 DC 扫描，验证了其在近阈值电压下的鲁棒性：
-
 #### 1. 静态噪声容限 (RSNM) 分析
 利用施密特触发器结构，9T 单元在读取状态下表现出显著的滞回特性，增大了噪声容限。
 ![RSNM Butterfly Curve](results/figures/rsnm_butterfly_fixed.png)
@@ -86,7 +84,13 @@
 #### 2. 读取干扰 DC 轨迹
 通过注入噪声源分析存储节点的翻转临界点，验证了单边 ST 结构对读取干扰的抑制作用。
 ![DC Trajectory](results/figures/Read%20disturbance%20DC%20trajectory%20under%20noise%20injection.png)
+#### 3. 蒙特卡洛良率统计 (Yield Analysis)
 
+#### 4. 写辅助技术验证 (Write-Assist Verification)
+## 架构性能对比
+## 阵列级集成说明
+   ### 1. 位交织结构实现
+   ### 2. 时序协同设计
 ---
 ## 参考文献
 [1] K. Cho, J. Park, T. W. Oh and S. Jung, "One-Sided Schmitt-Trigger-Based 9T SRAM Cell for Near-Threshold Operation," in IEEE Transactions on Circuits and Systems I: Regular Papers, vol. 67, no. 5, pp. 1551-1561, May 2020. doi: 10.1109/TCSI.2020.2965352.
